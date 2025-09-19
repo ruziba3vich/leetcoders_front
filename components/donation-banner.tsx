@@ -12,7 +12,7 @@ export function DonationBanner() {
         <Button
           variant="default"
           className="bg-accent hover:bg-accent/90 text-accent-foreground"
-          onClick={() => window.open("#", "_blank")}
+          onClick={() => window.open("https://tirikchilik.uz/prodonik", "_blank")}
         >
           <ExternalLink className="w-4 h-4 mr-2" />
           Donate Now

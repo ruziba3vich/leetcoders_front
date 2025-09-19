@@ -8,20 +8,21 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Search, Trophy, Code, ChevronLeft, ChevronRight } from "lucide-react"
 import { CountrySelector } from "@/components/country-selector"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface User {
   id: number
   username: string
   user_slug: string
-  real_name: { string: string; valid: boolean }
-  country_code: { string: string; valid: boolean }
-  country_name: { string: string; valid: boolean }
+  real_name: { String: string; Valid: boolean }
+  country_code: { String: string; Valid: boolean }
+  country_name: { String: string; Valid: boolean }
   total_problems_solved: number
   total_submissions: number
-  user_avatar: { string: string; valid: boolean }
+  user_avatar: { String: string; Valid: boolean }
   created_at: string
   updated_at: string
-  typename: { string: string; valid: boolean }
+  typename: { String: string; Valid: boolean }
 }
 
 interface UsersResponse {
@@ -31,12 +32,64 @@ interface UsersResponse {
   limit: number
 }
 
+const UserTableSkeleton = () => (
+  <div className="space-y-4">
+    <div className="flex items-center justify-between">
+      <Skeleton className="h-5 w-48" />
+    </div>
+    <div className="border rounded-lg">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-16">Avatar</TableHead>
+            <TableHead>Username</TableHead>
+            <TableHead>Real Name</TableHead>
+            <TableHead>Country</TableHead>
+            <TableHead className="text-center">Problems Solved</TableHead>
+            <TableHead className="text-center">Total Submissions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <TableRow key={i} className="hover:bg-transparent">
+              <TableCell>
+                <Skeleton className="w-10 h-10 rounded-full" />
+              </TableCell>
+              <TableCell>
+                <Skeleton className="h-5 w-32" />
+              </TableCell>
+              <TableCell>
+                <Skeleton className="h-5 w-40" />
+              </TableCell>
+              <TableCell>
+                <Skeleton className="h-5 w-24" />
+              </TableCell>
+              <TableCell className="text-center">
+                <Skeleton className="h-5 w-16 mx-auto" />
+              </TableCell>
+              <TableCell className="text-center">
+                <Skeleton className="h-5 w-16 mx-auto" />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+    <div className="flex items-center justify-between">
+      <Skeleton className="h-9 w-24" />
+      <Skeleton className="h-5 w-32" />
+      <Skeleton className="h-9 w-24" />
+    </div>
+  </div>
+)
+
 export function UserSearch() {
   const [selectedCountry, setSelectedCountry] = useState("RU")
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(false)
   const [totalCount, setTotalCount] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
+  const [hasSearched, setHasSearched] = useState(false)
 
   const fetchUsers = async (country: string, page = 1) => {
     setLoading(true)
@@ -44,20 +97,32 @@ export function UserSearch() {
       const response = await fetch(
         `https://backend.leetcoders.uz/api/v1/get-users?country=${country}&page=${page}&limit=100`,
       )
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status} ${response.statusText}`)
+      }
       const data: UsersResponse = await response.json()
-      console.log("[v0] API Response:", data)
-      console.log("[v0] First user:", data.users[0])
-      setUsers(data.users)
-      setTotalCount(data.total_count)
-      setCurrentPage(data.page)
+
+      if (data && Array.isArray(data.users)) {
+        setUsers(data.users)
+        setTotalCount(data.total_count || 0)
+        // Trust the page number we requested to ensure state consistency.
+        setCurrentPage(page)
+      } else {
+        setUsers([])
+        setTotalCount(0)
+        console.error("Unexpected API response structure:", data)
+      }
     } catch (error) {
       console.error("Error fetching users:", error)
+      setUsers([])
+      setTotalCount(0)
     } finally {
       setLoading(false)
     }
   }
 
   const handleSearch = () => {
+    setHasSearched(true)
     fetchUsers(selectedCountry, 1)
   }
 
@@ -105,8 +170,16 @@ export function UserSearch() {
           </Button>
         </div>
 
-        {/* Results */}
-        {users.length > 0 && (
+        {/* Results Area */}
+        {loading && <UserTableSkeleton />}
+
+        {!loading && hasSearched && users.length === 0 && (
+          <div className="text-center py-10 text-muted-foreground">
+            <p>No users found for the selected country.</p>
+          </div>
+        )}
+
+        {!loading && users.length > 0 && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <p className="text-sm text-muted-foreground">
@@ -132,34 +205,21 @@ export function UserSearch() {
                       <TableCell>
                         <Avatar className="w-10 h-10">
                           <AvatarImage
-                            src={user.user_avatar?.valid ? user.user_avatar.string : undefined}
+                            src={user.user_avatar?.Valid ? user.user_avatar.String : undefined}
                             alt={user.username}
-                            onError={(e) => console.log("[v0] Avatar failed to load:", user.user_avatar)}
                           />
                           <AvatarFallback>{user.username.slice(0, 2).toUpperCase()}</AvatarFallback>
                         </Avatar>
                       </TableCell>
                       <TableCell className="font-medium">{user.username}</TableCell>
-                      <TableCell>
-                        {(() => {
-                          console.log("[v0] Real name for", user.username, ":", user.real_name)
-                          return user.real_name?.valid ? user.real_name.string : "-"
-                        })()}
-                      </TableCell>
+                      <TableCell>{user.real_name?.Valid ? user.real_name.String : "-"}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          {(() => {
-                            console.log("[v0] Country data for", user.username, ":", {
-                              code: user.country_code,
-                              name: user.country_name,
-                            })
-                            return null
-                          })()}
-                          {user.country_code?.valid && (
-                            <span className="text-lg">{getCountryFlag(user.country_code.string)}</span>
+                          {user.country_code?.Valid && (
+                            <span className="text-lg">{getCountryFlag(user.country_code.String)}</span>
                           )}
-                          {user.country_name?.valid ? (
-                            <span className="text-sm">{user.country_name.string}</span>
+                          {user.country_name?.Valid ? (
+                            <span className="text-sm">{user.country_name.String}</span>
                           ) : (
                             <span className="text-sm text-muted-foreground">Unknown</span>
                           )}
@@ -216,6 +276,7 @@ export function UserSearch() {
 }
 
 function getCountryFlag(countryCode: string): string {
+  if (!countryCode) return ""
   const codePoints = countryCode
     .toUpperCase()
     .split("")

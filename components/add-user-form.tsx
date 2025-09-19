@@ -104,7 +104,7 @@ export function AddUserForm() {
             <Input
               id="username"
               type="text"
-              placeholder="Enter your LeetCode username"
+              placeholder="Enter your Leetcode username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               disabled={loading}

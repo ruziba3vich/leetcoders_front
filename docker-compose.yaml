@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  leetcoders-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: leetcoders-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    restart: unless-stopped
+    networks:
+      - leetcoders-network
+    # Uncomment the following lines if you need to mount volumes for development
+    # volumes:
+    #   - .:/app
+    #   - /app/node_modules
+    #   - /app/.next
+    
+  # Optional: Add nginx as reverse proxy if needed
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: leetcoders-nginx
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/nginx.conf:ro
+  #   depends_on:
+  #     - leetcoders-frontend
+  #   restart: unless-stopped
+  #   networks:
+  #     - leetcoders-network
+
+networks:
+  leetcoders-network:
+    driver: bridge
+
+# Optional: Add volumes for persistent data if needed
+# volumes:
+#   node_modules:

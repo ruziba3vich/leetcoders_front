@@ -6,8 +6,7 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: 'Leetcoders',
-  description: 'Created with v0',
-  generator: 'v0.app',
+  description: 'Online Ratings Among Leetcoders',
 }
 
 export default function RootLayout({

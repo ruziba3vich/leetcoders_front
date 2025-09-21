@@ -1,6 +1,9 @@
 "use client"
 
+import { useState } from "react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Input } from "@/components/ui/input"
+import { Search } from "lucide-react"
 
 interface CountrySelectorProps {
   value: string
@@ -62,7 +65,7 @@ const countries = [
   { code: "CD", name: "Congo - Kinshasa", flag: "🇨🇩" },
   { code: "CK", name: "Cook Islands", flag: "🇨🇰" },
   { code: "CR", name: "Costa Rica", flag: "🇨🇷" },
-  { code: "CI", name: "Côte d’Ivoire", flag: "🇨🇮" },
+  { code: "CI", name: "Côte d'Ivoire", flag: "🇨🇮" },
   { code: "HR", name: "Croatia", flag: "🇭🇷" },
   { code: "CU", name: "Cuba", flag: "🇨🇺" },
   { code: "CW", name: "Curaçao", flag: "🇨🇼" },
@@ -258,20 +261,53 @@ const countries = [
 ];
 
 export function CountrySelector({ value, onValueChange }: CountrySelectorProps) {
+  const [searchTerm, setSearchTerm] = useState("")
+
+  const filteredCountries = countries.filter((country) =>
+    country.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    country.code.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
+  const selectedCountry = countries.find((country) => country.code === value)
+
   return (
     <Select value={value} onValueChange={onValueChange}>
       <SelectTrigger className="w-full">
-        <SelectValue placeholder="Select a country" />
+        <SelectValue placeholder="Select a country">
+          {selectedCountry && (
+            <div className="flex items-center gap-2">
+              <span>{selectedCountry.flag}</span>
+              <span>{selectedCountry.name}</span>
+            </div>
+          )}
+        </SelectValue>
       </SelectTrigger>
       <SelectContent>
-        {countries.map((country) => (
-          <SelectItem key={country.code} value={country.code}>
-            <div className="flex items-center gap-2">
-              <span>{country.flag}</span>
-              <span>{country.name}</span>
+        <div className="flex items-center border-b px-3 pb-2 mb-2">
+          <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+          <Input
+            placeholder="Search countries..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="h-8 w-full border-0 p-0 placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0"
+          />
+        </div>
+        <div className="max-h-[200px] overflow-auto">
+          {filteredCountries.length === 0 ? (
+            <div className="py-6 text-center text-sm text-muted-foreground">
+              No countries found.
             </div>
-          </SelectItem>
-        ))}
+          ) : (
+            filteredCountries.map((country) => (
+              <SelectItem key={country.code} value={country.code}>
+                <div className="flex items-center gap-2">
+                  <span>{country.flag}</span>
+                  <span>{country.name}</span>
+                </div>
+              </SelectItem>
+            ))
+          )}
+        </div>
       </SelectContent>
     </Select>
   )

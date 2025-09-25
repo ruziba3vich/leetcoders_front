@@ -11,6 +11,7 @@ interface CountrySelectorProps {
 }
 
 const countries = [
+  { code: "all", name: "World wide", flag: "" },
   { code: "AF", name: "Afghanistan", flag: "🇦🇫" },
   { code: "AX", name: "Åland Islands", flag: "🇦🇽" },
   { code: "AL", name: "Albania", flag: "🇦🇱" },

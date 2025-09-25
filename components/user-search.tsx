@@ -41,6 +41,7 @@ const UserTableSkeleton = () => (
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-12 text-center">#</TableHead>
             <TableHead className="w-16">Avatar</TableHead>
             <TableHead>Username</TableHead>
             <TableHead>Real Name</TableHead>
@@ -52,6 +53,9 @@ const UserTableSkeleton = () => (
         <TableBody>
           {Array.from({ length: 5 }).map((_, i) => (
             <TableRow key={i} className="hover:bg-transparent">
+              <TableCell className="text-center">
+                <Skeleton className="h-5 w-6 mx-auto" />
+              </TableCell>
               <TableCell>
                 <Skeleton className="w-10 h-10 rounded-full" />
               </TableCell>
@@ -84,7 +88,7 @@ const UserTableSkeleton = () => (
 )
 
 export function UserSearch() {
-  const [selectedCountry, setSelectedCountry] = useState("RU")
+  const [selectedCountry, setSelectedCountry] = useState("all")
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(false)
   const [totalCount, setTotalCount] = useState(0)
@@ -104,9 +108,9 @@ export function UserSearch() {
 
       if (data && Array.isArray(data.users)) {
         setUsers(data.users)
-        setTotalCount(data.total_count || 0)
-        // Trust the page number we requested to ensure state consistency.
-        setCurrentPage(page)
+        // Ensure total_count is a number and use the page number from the API response
+        setTotalCount(Number(data.total_count) || 0)
+        setCurrentPage(data.page || page)
       } else {
         setUsers([])
         setTotalCount(0)
@@ -123,6 +127,7 @@ export function UserSearch() {
 
   const handleSearch = () => {
     setHasSearched(true)
+    // Always reset to page 1 for a new search
     fetchUsers(selectedCountry, 1)
   }
 
@@ -191,6 +196,7 @@ export function UserSearch() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-12 text-center">#</TableHead>
                     <TableHead className="w-16">Avatar</TableHead>
                     <TableHead>Username</TableHead>
                     <TableHead>Real Name</TableHead>
@@ -200,8 +206,11 @@ export function UserSearch() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {users.map((user) => (
+                  {users.map((user, index) => (
                     <TableRow key={user.id} className="hover:bg-muted/50">
+                      <TableCell className="text-center font-medium text-muted-foreground">
+                        {(currentPage - 1) * 100 + index + 1}
+                      </TableCell>
                       <TableCell>
                         <Avatar className="w-10 h-10">
                           <AvatarImage
